@@ -1,13 +1,13 @@
 streamlit
 openai
 streamlit-chat
-streamlit-pandas-profiling
 pycaret
 scikit-learn
 seaborn
 matplotlib
 xgboost
 pandas
+
 
 
 
