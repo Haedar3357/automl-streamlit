@@ -1,22 +1,11 @@
-# Streamlit UI
-streamlit==1.49.1
-streamlit-chat==0.1.1
-
-# Data handling
+numpy==1.25.3
+scipy==1.10.1
 pandas==2.3.2
-numpy==1.26.4
-
-# Visualization
 matplotlib==3.10.6
 seaborn==0.13.2
-
-# Machine Learning
 scikit-learn==1.7.2
 xgboost==3.0.5
-joblib==1.3.2
-
-# OpenAI API
+streamlit==1.49.1
+streamlit-chat==0.1.1
 openai==1.107.3
-
-# Optional (for performance or compatibility)
-scipy==1.11.2
+joblib==1.3.2
