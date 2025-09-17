@@ -129,14 +129,59 @@ if choice == "Upload":
         except Exception as e:
             st.error(f"Failed to read uploaded file: {e}")
 
-# ---------- Profiling ----------
+# ---------- Profiling (Custom EDA) ----------
 if choice == "Profiling":
     st.title("Exploratory Data Analysis")
+
     if df is None:
         st.error("No dataset loaded. Please upload a CSV file in the 'Upload' tab first.")
     else:
-        profile = ydata_profiling.ProfileReport(df, explorative=True)
-        st_profile_report(profile)
+        st.subheader("📊 Basic Info")
+        st.write("**Shape:**", df.shape)
+        st.write("**Data Types:**")
+        st.dataframe(df.dtypes)
+
+        st.subheader("🔎 Missing Values")
+        st.dataframe(df.isnull().sum().to_frame("Missing Values"))
+
+        st.subheader("📈 Descriptive Statistics")
+        st.dataframe(df.describe(include='all').transpose())
+
+        st.subheader("⚖️ Correlation Matrix (Numeric Columns)")
+        numeric_cols = df.select_dtypes(include=['number']).columns
+        if len(numeric_cols) > 1:
+            corr = df[numeric_cols].corr()
+            fig, ax = plt.subplots(figsize=(8,6))
+            sns.heatmap(corr, annot=True, cmap="coolwarm", ax=ax)
+            st.pyplot(fig)
+        else:
+            st.info("Not enough numeric columns for correlation heatmap.")
+
+        st.subheader("📊 Distribution Plots")
+        col_choice = st.multiselect("Select numeric columns to view distributions", numeric_cols)
+        for col in col_choice:
+            fig, ax = plt.subplots()
+            sns.histplot(df[col].dropna(), kde=True, ax=ax)
+            ax.set_title(f"Distribution of {col}")
+            st.pyplot(fig)
+
+        st.subheader("🪄 Categorical Feature Analysis")
+        cat_cols = df.select_dtypes(exclude=['number']).columns
+        if len(cat_cols) > 0:
+            for col in cat_cols:
+                st.write(f"### {col}")
+                st.bar_chart(df[col].value_counts())
+        else:
+            st.info("No categorical columns detected.")
+
+        st.subheader("📐 Outlier Detection (Boxplots)")
+        out_cols = st.multiselect("Select numeric columns for boxplots", numeric_cols)
+        for col in out_cols:
+            fig, ax = plt.subplots()
+            sns.boxplot(x=df[col], ax=ax)
+            ax.set_title(f"Boxplot of {col}")
+            st.pyplot(fig)
+
 
 # ---------- Modeling ----------
 if choice == "Modeling":
@@ -297,3 +342,4 @@ if choice == "Download":
             st.markdown('<div class="custom-container">', unsafe_allow_html=True)
             st.download_button('⬇️ Download Model', f, file_name='best_model.pkl')
             st.markdown('</div>', unsafe_allow_html=True)
+
