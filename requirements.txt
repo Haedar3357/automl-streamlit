@@ -1,15 +1,15 @@
 # runtime
-python-3.11.16
+python-3.10.12
 
-# libraries
+# dependencies
 streamlit==1.37.1
 openai==1.42.0
 streamlit-chat==0.1.1
 ydata-profiling==4.8.3
 streamlit-pandas-profiling==0.1.3
 pycaret==3.3.2
-scikit-learn==1.5.2        # minor update لتوافق Python 3.11
+scikit-learn==1.5.2
 seaborn==0.13.2
-matplotlib>=3.5,<3.9       # 3.8.2 أفضل توافقًا مع Python 3.11
+matplotlib>=3.5,<3.9
 xgboost==2.1.1
-pandas<2.2.0               # ضروري لـ PyCaret 3.3.2
+pandas<2.2.0
