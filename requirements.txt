@@ -1,4 +1,4 @@
-python-3.11.9
+python-3.10.12
 streamlit==1.37.1
 openai==1.42.0
 streamlit-chat==0.1.1
@@ -9,6 +9,7 @@ scikit-learn==1.5.1
 seaborn==0.13.2
 matplotlib>=3.2,<3.9
 xgboost==2.1.1
+
 
 
 
