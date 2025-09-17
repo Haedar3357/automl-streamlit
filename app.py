@@ -85,60 +85,113 @@ if choice == "Upload":
 
 # ---------- Profiling ----------
 if choice == "Profiling":
-    st.title("Exploratory Data Analysis")
+    st.title("Exploratory Data Analysis & Cleaning")
+    
     if df is None:
         st.error("No dataset loaded.")
     else:
-        st.write("**Shape:**", df.shape)
+        # 1️⃣ إزالة الأعمدة المكررة
+        df = df.loc[:,~df.columns.duplicated()]
+        st.write("**Shape after removing duplicate columns:**", df.shape)
+        
+        st.subheader("Data Types")
         st.dataframe(df.dtypes)
-        st.subheader("Missing Values")
+        
+        # 2️⃣ معالجة القيم الفارغة
+        numeric_cols = df.select_dtypes(include=['number']).columns
+        for col in numeric_cols:
+            if df[col].isnull().sum() > 0:
+                col_std = abs(df[col].std())
+                if col_std < 1:
+                    df[col].fillna(df[col].mean(), inplace=True)
+                else:
+                    df[col].fillna(df[col].median(), inplace=True)
+        
+        cat_cols = df.select_dtypes(exclude=['number']).columns
+        for col in cat_cols:
+            if df[col].isnull().sum() > 0:
+                df[col].fillna(df[col].mode()[0], inplace=True)
+        
+        st.subheader("Missing Values After Cleaning")
         st.dataframe(df.isnull().sum().to_frame("Missing Values"))
+        
+        # 3️⃣ الإحصاءات الوصفية
         st.subheader("Descriptive Statistics")
         st.dataframe(df.describe(include='all').transpose())
         
-        numeric_cols = df.select_dtypes(include=['number']).columns
+        # 4️⃣ مصفوفة الارتباط
         if len(numeric_cols) > 1:
             st.subheader("Correlation Matrix")
             corr = df[numeric_cols].corr()
             fig, ax = plt.subplots(figsize=(8,6))
             sns.heatmap(corr, annot=True, cmap="coolwarm", ax=ax)
             st.pyplot(fig)
-
+        
+        # 5️⃣ توزيعات البيانات
         st.subheader("Distribution Plots")
-        col_choice = st.multiselect("Select numeric columns", numeric_cols)
+        col_choice = st.multiselect("Select numeric columns to view distributions", numeric_cols)
         for col in col_choice:
             fig, ax = plt.subplots()
-            sns.histplot(df[col].dropna(), kde=True, ax=ax)
+            sns.histplot(df[col], kde=True, ax=ax)
             ax.set_title(f"Distribution of {col}")
             st.pyplot(fig)
-
-        cat_cols = df.select_dtypes(exclude=['number']).columns
+        
+        # 6️⃣ تحليل القيم الشاذة
+        st.subheader("Outlier Detection (IQR method)")
+        outlier_summary = []
+        for col in numeric_cols:
+            Q1 = df[col].quantile(0.25)
+            Q3 = df[col].quantile(0.75)
+            IQR = Q3 - Q1
+            outliers = df[(df[col] < Q1 - 1.5*IQR) | (df[col] > Q3 + 1.5*IQR)][col]
+            count = outliers.shape[0]
+            perc = (count / df.shape[0]) * 100
+            outlier_summary.append({'Column': col, 'Outliers Count': count, 'Outliers %': perc})
+        
+        st.dataframe(pd.DataFrame(outlier_summary))
+        
+        # 7️⃣ تحليل البيانات الفئوية
         if len(cat_cols) > 0:
             st.subheader("Categorical Feature Analysis")
             for col in cat_cols:
                 st.write(f"### {col}")
                 st.bar_chart(df[col].value_counts())
+        
+        # 8️⃣ حفظ البيانات المعالجة في session_state لاستخدامها لاحقاً
+        st.session_state['df_clean'] = df
+        st.success("✅ Data cleaned and stored for Modeling.")
+
 
 # ---------- Modeling Manual ----------
 if choice == "Modeling":
-    st.title("Modeling")
-    if df is None:
-        st.error("No dataset loaded.")
-    else:
-        target_col = st.selectbox("Select target column", df.columns)
-        X = df.drop(columns=[target_col])
-        y = df[target_col]
-
+# ---------- Modeling Manual ----------
+if choice == "Modeling":
+        st.title("Modeling")
+        
+        if 'df_clean' in st.session_state:
+            df_model = st.session_state['df_clean']
+        elif df is not None:
+            df_model = df
+        else:
+            st.error("No dataset loaded.")
+            st.stop()
+        
+        target_col = st.selectbox("Select target column", df_model.columns)
+        X = df_model.drop(columns=[target_col])
+        y = df_model[target_col]
+    
         # Encode categorical features
         for c in X.select_dtypes(include='object').columns:
             X[c] = LabelEncoder().fit_transform(X[c])
         if y.dtype == 'object':
             y = LabelEncoder().fit_transform(y)
-
+        
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
         scaler = StandardScaler()
         X_train = scaler.fit_transform(X_train)
         X_test = scaler.transform(X_test)
+        
+
 
         model_type = st.radio("Algorithm type", ["Classification", "Regression"])
 
@@ -214,3 +267,4 @@ if choice == "Download":
         if file.endswith("_model.pkl"):
             with open(file, 'rb') as f:
                 st.download_button(f"Download {file}", f, file_name=file)
+
