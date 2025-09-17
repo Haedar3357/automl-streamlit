@@ -162,8 +162,7 @@ if choice == "Profiling":
         st.success("✅ Data cleaned and stored for Modeling.")
 
 
-# ---------- Modeling Manual ----------
-if choice == "Modeling":
+
 # ---------- Modeling Manual ----------
 if choice == "Modeling":
         st.title("Modeling")
@@ -267,4 +266,5 @@ if choice == "Download":
         if file.endswith("_model.pkl"):
             with open(file, 'rb') as f:
                 st.download_button(f"Download {file}", f, file_name=file)
+
 
