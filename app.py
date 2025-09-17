@@ -2,8 +2,6 @@
 import os
 import streamlit as st
 import pandas as pd
-import ydata_profiling
-from streamlit_pandas_profiling import st_profile_report
 
 from pycaret.classification import (
     setup as clf_setup, compare_models as clf_compare_models, pull as clf_pull,
@@ -342,4 +340,5 @@ if choice == "Download":
             st.markdown('<div class="custom-container">', unsafe_allow_html=True)
             st.download_button('⬇️ Download Model', f, file_name='best_model.pkl')
             st.markdown('</div>', unsafe_allow_html=True)
+
 
